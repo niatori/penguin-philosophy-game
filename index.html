@@ -107,8 +107,9 @@
         border: 7px solid #f8fbf8;
         border-radius: 220px 220px 30px 30px;
         background:
-          radial-gradient(ellipse at 50% 63%, rgb(230 248 246 / 66%) 0 21%, transparent 58%),
-          linear-gradient(180deg, #9fcbd1 0%, #c2e0dc 49%, #dcebe3 73%, #b6dadd 100%);
+          radial-gradient(ellipse at 50% 63%, var(--scene-glow, rgb(230 248 246 / 66%)) 0 21%, transparent 58%),
+          linear-gradient(180deg, var(--sky-top, #9fcbd1) 0%, var(--sky-mid, #c2e0dc) 49%, var(--sky-low, #dcebe3) 73%, var(--sky-bottom, #b6dadd) 100%);
+        transition: background 1100ms ease;
         box-shadow: 0 24px 70px rgb(52 104 117 / 14%), inset 0 0 0 1px rgb(255 255 255 / 80%);
         touch-action: none;
         user-select: none;
@@ -121,6 +122,8 @@
         left: 0;
         height: 46%;
         background: linear-gradient(180deg, rgb(255 255 255 / 21%), transparent);
+        opacity: var(--daylight, 1);
+        transition: opacity 1100ms ease;
         content: "";
         pointer-events: none;
       }
@@ -136,20 +139,55 @@
         transform: rotate(-12deg);
         animation: aurora-drift 12s ease-in-out infinite alternate;
       }
+      .star-field {
+        position: absolute;
+        z-index: 1;
+        inset: 0;
+        background-image:
+          radial-gradient(1.5px 1.5px at 19% 19%, rgb(255 255 255 / 96%) 98%, transparent),
+          radial-gradient(1px 1px at 72% 12%, rgb(255 255 255 / 91%) 98%, transparent),
+          radial-gradient(1.5px 1.5px at 84% 31%, rgb(255 255 255 / 90%) 98%, transparent),
+          radial-gradient(1px 1px at 39% 28%, rgb(255 255 255 / 85%) 98%, transparent),
+          radial-gradient(1px 1px at 56% 17%, rgb(255 255 255 / 90%) 98%, transparent),
+          radial-gradient(1.5px 1.5px at 29% 42%, rgb(255 255 255 / 88%) 98%, transparent),
+          radial-gradient(1px 1px at 91% 23%, rgb(255 255 255 / 90%) 98%, transparent);
+        opacity: var(--star-opacity, 0);
+        transition: opacity 1100ms ease;
+        pointer-events: none;
+      }
       @keyframes aurora-drift {
         from { transform: translateX(-4%) rotate(-12deg); opacity: .7; }
         to { transform: translateX(4%) rotate(-4deg); opacity: 1; }
       }
       .sun {
         position: absolute;
-        top: 16%;
-        right: 20%;
+        z-index: 1;
+        top: var(--sun-y, 20%);
+        left: var(--sun-x, 72%);
         width: 48px;
         height: 48px;
         border: 1px solid rgb(255 255 255 / 55%);
         border-radius: 50%;
-        background: rgb(255 250 221 / 68%);
-        box-shadow: 0 0 35px rgb(255 251 215 / 55%);
+        background: var(--sun-color, rgb(255 250 221 / 80%));
+        box-shadow: 0 0 35px var(--sun-glow, rgb(255 251 215 / 55%));
+        opacity: var(--sun-opacity, 1);
+        transform: translate(-50%, -50%);
+        transition: left 1100ms ease, top 1100ms ease, opacity 1100ms ease, background 1100ms ease, box-shadow 1100ms ease;
+      }
+      .moon {
+        position: absolute;
+        z-index: 1;
+        top: var(--moon-y, 28%);
+        left: var(--moon-x, 36%);
+        width: 36px;
+        height: 36px;
+        border: 1px solid rgb(255 255 255 / 72%);
+        border-radius: 50%;
+        background: #e8f2f4;
+        box-shadow: 0 0 28px rgb(213 235 255 / 62%), inset -5px -3px 0 rgb(123 151 177 / 20%);
+        opacity: var(--moon-opacity, 0);
+        transform: translate(-50%, -50%);
+        transition: left 1100ms ease, top 1100ms ease, opacity 1100ms ease;
       }
       .distant-ice {
         position: absolute;
@@ -219,8 +257,9 @@
         height: 35%;
         border: 1px solid rgb(255 255 255 / 91%);
         border-radius: 50% 48% 0 0 / 23% 24% 0 0;
-        background: linear-gradient(180deg, #f9fffc 0%, #e8f7f3 44%, #bddfe1 100%);
+        background: linear-gradient(180deg, var(--ice-top, #f9fffc) 0%, var(--ice-mid, #e8f7f3) 44%, var(--ice-bottom, #bddfe1) 100%);
         box-shadow: 0 -12px 28px rgb(255 255 255 / 53%), inset 0 -8px 18px rgb(132 190 195 / 19%);
+        transition: background 1100ms ease;
         transform: rotate(-2deg);
       }
       .iceberg::before {
@@ -308,7 +347,7 @@
         position: absolute;
         z-index: -1;
         top: calc(100% - 1px);
-        left: calc(50% - 7px + 6px - var(--bubble-shift, 0px));
+        left: calc(50% - 1px);
         width: 14px;
         height: 78px;
         background: #fffefa;
@@ -385,10 +424,71 @@
       }
       .cry-bubble.philosophy-bubble::after {
         right: auto;
-        left: calc(50% - 8px + 6px - var(--bubble-shift, 0px));
+        left: calc(50% - 2px);
         width: 17px;
         height: 78px;
         clip-path: polygon(0 0, 100% 0, 50% 100%);
+      }
+      .emperor-accessories {
+        opacity: 0;
+        transform: translateY(8px) scale(.82);
+        transform-origin: 90px 70px;
+        transition: opacity 240ms ease, transform 300ms cubic-bezier(.2,.8,.2,1);
+      }
+      .emperor-active .emperor-accessories { opacity: 1; transform: translateY(0) scale(1); }
+      .emperor-active .penguin {
+        animation: emperor-bob 1.15s ease-in-out infinite;
+        filter: drop-shadow(0 0 15px rgb(255 210 105 / 80%)) drop-shadow(0 11px 9px rgb(37 83 90 / 15%));
+      }
+      @keyframes emperor-bob {
+        0%, 100% { margin-bottom: 0; }
+        50% { margin-bottom: calc(12px * var(--motion-scale, 1)); }
+      }
+      .emperor-cutin {
+        position: absolute;
+        z-index: 8;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 24px;
+        overflow: hidden;
+        background: linear-gradient(112deg, transparent 0 12%, rgb(9 22 42 / 92%) 12% 88%, transparent 88%);
+        color: #fff7d4;
+        text-align: center;
+        text-shadow: 0 3px 20px rgb(255 204 82 / 55%);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateX(-110%) skewX(-8deg);
+        pointer-events: none;
+      }
+      .emperor-cutin::before {
+        position: absolute;
+        inset: 0;
+        border-top: 2px solid rgb(255 230 151 / 92%);
+        border-bottom: 2px solid rgb(255 230 151 / 78%);
+        background: linear-gradient(100deg, transparent 10%, rgb(255 221 135 / 12%) 48%, transparent 85%);
+        content: "";
+      }
+      .emperor-cutin.show {
+        visibility: visible;
+        animation: emperor-cut-in 1.55s cubic-bezier(.2,.8,.2,1) both;
+      }
+      .emperor-cutin span, .emperor-cutin strong { position: relative; }
+      .emperor-cutin span { font-size: 10px; font-weight: 800; letter-spacing: .3em; }
+      .emperor-cutin strong {
+        color: #fff9dc;
+        font-size: clamp(30px, 8vw, 48px);
+        font-weight: 900;
+        letter-spacing: .06em;
+        white-space: nowrap;
+      }
+      @keyframes emperor-cut-in {
+        0% { opacity: 0; transform: translateX(-110%) skewX(-8deg); }
+        18%, 78% { opacity: 1; transform: translateX(0) skewX(-8deg); }
+        100% { opacity: 0; transform: translateX(110%) skewX(-8deg); }
       }
       .swipe-hint {
         position: absolute;
@@ -576,14 +676,21 @@
       <section class="game" aria-label="ペンギンと遊ぶ">
         <div class="scene" id="scene" role="application" aria-label="氷の上のペンギン。画面をスワイプしてください">
           <div class="aurora" aria-hidden="true"></div>
+          <div class="star-field" id="star-field" aria-hidden="true"></div>
           <div class="sun" aria-hidden="true"></div>
+          <div class="moon" aria-hidden="true"></div>
           <div class="cloud" aria-hidden="true"></div>
           <div class="distant-ice left" aria-hidden="true"></div>
           <div class="distant-ice right" aria-hidden="true"></div>
           <div class="philosophy-aura" id="philosophy-aura" aria-hidden="true"></div>
+          <div class="emperor-cutin" id="emperor-cutin" aria-hidden="true">
+            <span>LIMIT BREAK · 10,000</span>
+            <strong>エンペラータイム</strong>
+            <span>PHILOSOPHY AWAKENED</span>
+          </div>
 
           <div class="scene-top">
-            <div class="weather-pill"><span class="weather-dot"></span>南極の小さな氷</div>
+            <div class="weather-pill"><span class="weather-dot"></span><span id="time-label">南極の小さな氷</span></div>
             <div class="count-pill" aria-label="操作回数"><span aria-hidden="true">❄</span><span id="swipe-count">0</span></div>
           </div>
 
@@ -595,7 +702,7 @@
           <div class="penguin" id="penguin">
             <svg viewBox="0 0 180 230" role="img" aria-label="ペンギン">
               <ellipse cx="92" cy="214" rx="50" ry="9" fill="#9fc6c5" opacity=".34"/>
-              <path d="M56 185c-7 12-9 22-4 26 6 5 20 1 32-6l9-12zM103 192c8 12 20 20 28 17 7-3 3-14-2-24l-17-7z" fill="#edaa68"/>
+              <path d="M58 187c-7 10-11 19-6 24 6 5 22 1 34-5l8-11zM122 187c7 10 11 19 6 24-6 5-22 1-34-5l-8-11z" fill="#edaa68"/>
               <path d="M45 107c-5-42 12-76 42-83 34-8 62 22 63 65l3 62c1 31-23 51-59 51-37 0-58-20-56-51z" fill="#20343b"/>
               <path d="M69 114c1-26 13-43 29-43 18 0 32 19 33 46l1 31c0 21-14 37-34 37-22 0-34-15-33-36z" fill="#f8f6e8"/>
               <path d="M50 95c-17 11-27 31-23 56 2 11 8 15 15 10l16-15z" fill="#20343b"/>
@@ -607,6 +714,11 @@
               <path d="M85 84c4-8 18-8 23 0l-11 13z" fill="#efa750"/>
               <path d="M67 52c6-5 13-6 19-4M108 48c7-2 14 0 19 5" fill="none" stroke="#15272d" stroke-width="4" stroke-linecap="round"/>
               <path d="M71 106c7 5 15 7 24 6M109 112c7 0 13-2 18-6" fill="none" stroke="#e9e5d7" stroke-width="2" opacity=".75"/>
+              <g class="emperor-accessories" aria-hidden="true">
+                <path d="M48 53c7-15 17-22 27-25l-8 22c-7 0-13 1-19 3zM132 50c-5-13-14-20-24-23l7 22c6 0 12 0 17 1z" fill="#f3a83b" stroke="#9e6124" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M57 57h35l-2 12c-1 6-7 8-15 7-7-1-12-5-13-11zM88 59h5M94 57h30l-2 11c-1 6-7 8-14 8-8 0-13-4-14-10z" fill="#14202a" stroke="#101b23" stroke-width="3" stroke-linejoin="round"/>
+                <path d="M64 60h21M101 60h17" stroke="#a9e3ef" stroke-width="2" stroke-linecap="round" opacity=".85"/>
+              </g>
             </svg>
             <div class="cry-bubble" id="cry-bubble" role="status" aria-live="polite">
               <span id="cry-text"></span>
@@ -676,7 +788,7 @@
           <span class="setting-label"><span>吹き出しの左右位置</span><output id="bubble-horizontal-offset-output" for="bubble-horizontal-offset">0 px</output></span>
           <input id="bubble-horizontal-offset" type="range" min="-80" max="80" step="2" value="0">
         </label>
-        <p class="settings-footnote">哲学の演出は約4秒間続き、その間はスワイプとなでる操作が一時停止します。</p>
+        <p class="settings-footnote">通常の哲学演出は約4秒間操作が止まります。1万点に達すると10秒間の「エンペラータイム」が始まり、スワイプで次の哲学へ進めます。</p>
         <p class="settings-status" id="settings-status" role="status" aria-live="polite"></p>
         <div class="settings-actions">
           <button class="test-philosophy-button" id="test-philosophy" type="button">哲学の演出を試す</button>
@@ -688,8 +800,10 @@
     <script>
       (() => {
         const scene = document.getElementById("scene");
+        const timeLabel = document.getElementById("time-label");
         const penguin = document.getElementById("penguin");
         const bubble = document.getElementById("cry-bubble");
+        const emperorCutIn = document.getElementById("emperor-cutin");
         const cryText = document.getElementById("cry-text");
         const quoteSpeaker = document.getElementById("quote-speaker");
         const countLabel = document.getElementById("count-label");
@@ -731,6 +845,24 @@
           { text: "人を悩ませるのは物事ではなく、物事についての考え方である。", speaker: "エピクテトス" },
           { text: "人生の幸福は、思考の質に左右される。", speaker: "マルクス・アウレリウス" }
         ];
+        const dayCycleDuration = 120000;
+        const openedAt = performance.now();
+        const openedHour = (() => {
+          const now = new Date();
+          return now.getHours() + now.getMinutes() / 60 + now.getSeconds() / 3600;
+        })();
+        const dayPalette = [
+          { hour: 0, sky: ["#10203a", "#273750", "#3f5663", "#5a7680"], ice: ["#e2ece9", "#c5dcd9", "#78999d"], glow: "#c5d9de", sun: "#dce9f0" },
+          { hour: 4, sky: ["#1a2945", "#3a4860", "#626d79", "#82928d"], ice: ["#e9eee6", "#d0e0d9", "#91aaa8"], glow: "#e5d4cb", sun: "#ffe0b5" },
+          { hour: 6, sky: ["#6c7397", "#bd8291", "#e7ae91", "#a4c6c2"], ice: ["#fff4e1", "#e9e9dc", "#a2c2c3"], glow: "#ffdfb4", sun: "#ffe3ad" },
+          { hour: 8, sky: ["#8dc1d0", "#b9dcd6", "#e4eee0", "#b5d8da"], ice: ["#fbfffa", "#e8f7f3", "#bddfe1"], glow: "#fff2d1", sun: "#fff5d5" },
+          { hour: 12, sky: ["#77b6cf", "#a9d8d1", "#e9f1dc", "#b7dadd"], ice: ["#fbfffa", "#e8f7f3", "#bddfe1"], glow: "#fff7d9", sun: "#fff7d8" },
+          { hour: 16, sky: ["#a6b0bd", "#d1c9b9", "#e9dec8", "#bdcfca"], ice: ["#fffdf5", "#eee9dc", "#bed3d1"], glow: "#f8e9c9", sun: "#ffe9ca" },
+          { hour: 18, sky: ["#bf7180", "#e19a83", "#edbc91", "#b8c5bd"], ice: ["#fff0dc", "#e9d8c9", "#acbfc2"], glow: "#ffd6ad", sun: "#ffce9d" },
+          { hour: 20, sky: ["#4a456f", "#745574", "#a37983", "#83969a"], ice: ["#eee8e2", "#d0d5d4", "#879fa5"], glow: "#d3b7c8", sun: "#ffd0ac" },
+          { hour: 22, sky: ["#172641", "#2d3b55", "#4a5b68", "#607c84"], ice: ["#e3eaeb", "#c3d6d8", "#7d999f"], glow: "#becfe2", sun: "#dce8f1" },
+          { hour: 24, sky: ["#10203a", "#273750", "#3f5663", "#5a7680"], ice: ["#e2ece9", "#c5dcd9", "#78999d"], glow: "#c5d9de", sun: "#dce9f0" }
+        ];
 
         const settingsKey = "penguin-philosophy-settings";
         const defaultSettings = {
@@ -751,6 +883,8 @@
           bubbleHorizontalOffset: [-80, 80]
         };
         const settings = { ...defaultSettings };
+        const scoreFormatter = new Intl.NumberFormat("ja-JP");
+        const emperorScoreThreshold = 10000;
         let swipes = 0;
         let position = 50;
         let score = 0;
@@ -761,10 +895,15 @@
         let lastQuoteIndex = -1;
         let bubbleTimer;
         let philosophyTimer;
+        let emperorTimer;
+        let emperorSpeechTimer;
+        let emperorCutInTimer;
         let comboTimer;
         let audioContext;
         let pointerStart = null;
         let interactionLocked = false;
+        let emperorActive = false;
+        let emperorUnlocked = false;
 
         function loadSettings() {
           try {
@@ -807,11 +946,69 @@
           settingOutputs.swipeWidth.value = `${settings.swipeWidth}%`;
           settingOutputs.bubbleOffset.value = `${settings.bubbleOffset} px`;
           settingOutputs.bubbleHorizontalOffset.value = `${settings.bubbleHorizontalOffset} px`;
-          bestScoreLabel.textContent = String(settings.bestScore);
+          bestScoreLabel.textContent = scoreFormatter.format(settings.bestScore);
           updateBubbleOffset();
         }
 
-        function chirp() {
+        function parseHexColor(hex) {
+          return [1, 3, 5].map((index) => Number.parseInt(hex.slice(index, index + 2), 16));
+        }
+
+        function blendHexColors(first, second, progress) {
+          const firstRgb = parseHexColor(first);
+          const secondRgb = parseHexColor(second);
+          const channels = firstRgb.map((channel, index) => Math.round(channel + (secondRgb[index] - channel) * progress));
+          return `#${channels.map((channel) => channel.toString(16).padStart(2, "0")).join("")}`;
+        }
+
+        function updateDayScene() {
+          const elapsed = performance.now() - openedAt;
+          const hour = (openedHour + elapsed / dayCycleDuration * 24) % 24;
+          let start = dayPalette[0];
+          let end = dayPalette[dayPalette.length - 1];
+          for (let index = 1; index < dayPalette.length; index += 1) {
+            if (hour <= dayPalette[index].hour) {
+              start = dayPalette[index - 1];
+              end = dayPalette[index];
+              break;
+            }
+          }
+          const progress = (hour - start.hour) / (end.hour - start.hour);
+          for (let index = 0; index < start.sky.length; index += 1) {
+            scene.style.setProperty(`--sky-${["top", "mid", "low", "bottom"][index]}`, blendHexColors(start.sky[index], end.sky[index], progress));
+          }
+          for (let index = 0; index < start.ice.length; index += 1) {
+            scene.style.setProperty(`--ice-${["top", "mid", "bottom"][index]}`, blendHexColors(start.ice[index], end.ice[index], progress));
+          }
+          scene.style.setProperty("--scene-glow", `${blendHexColors(start.glow, end.glow, progress)}a8`);
+          scene.style.setProperty("--sun-color", `${blendHexColors(start.sun, end.sun, progress)}d9`);
+
+          const sunProgress = (hour - 6) / 12;
+          const sunHeight = Math.max(0, Math.sin(sunProgress * Math.PI));
+          const sunVisible = hour >= 5 && hour <= 19 ? Math.max(0, Math.min(1, (sunHeight + 0.2) * 1.4)) : 0;
+          const sunX = Math.max(7, Math.min(93, 12 + sunProgress * 76));
+          scene.style.setProperty("--sun-x", `${sunX}%`);
+          scene.style.setProperty("--sun-y", `${58 - sunHeight * 42}%`);
+          scene.style.setProperty("--sun-opacity", String(sunVisible));
+          scene.style.setProperty("--sun-glow", `${blendHexColors(start.sun, end.sun, progress)}8c`);
+
+          const moonHour = (hour + 12) % 24;
+          const moonProgress = (moonHour - 6) / 12;
+          const moonHeight = Math.max(0, Math.sin(moonProgress * Math.PI));
+          const nightProgress = hour >= 18 ? Math.min(1, (hour - 18) / 6) : hour < 6 ? Math.min(1, (6 - hour) / 6) : 0;
+          scene.style.setProperty("--moon-x", `${Math.max(7, Math.min(93, 12 + moonProgress * 76))}%`);
+          scene.style.setProperty("--moon-y", `${58 - moonHeight * 42}%`);
+          scene.style.setProperty("--moon-opacity", String(nightProgress));
+          scene.style.setProperty("--star-opacity", String(Math.min(1, nightProgress * 1.15)));
+          scene.style.setProperty("--daylight", String(0.2 + 0.8 * Math.min(1, (sunHeight + 0.2) / 1.2)));
+
+          const phase = hour < 5 ? "夜の南極" : hour < 7 ? "夜明けの南極" : hour < 11 ? "朝の南極" : hour < 16 ? "昼の南極" : hour < 18 ? "夕暮れの南極" : hour < 20 ? "夕焼けの南極" : hour < 22 ? "宵の南極" : "夜の南極";
+          timeLabel.textContent = phase;
+          scene.dataset.timePhase = phase;
+          scene.dataset.timeHour = hour.toFixed(2);
+        }
+
+        function chirp(isPhilosophy = false) {
           if (!soundEnabled) return;
           const AudioContextClass = window.AudioContext || window.webkitAudioContext;
           if (!AudioContextClass) return;
@@ -819,6 +1016,52 @@
           if (audioContext.state === "suspended") audioContext.resume();
 
           const now = audioContext.currentTime;
+          if (isPhilosophy) {
+            const choirNotes = [
+              { frequency: 261.63, volume: 0.021 },
+              { frequency: 392, volume: 0.02 },
+              { frequency: 523.25, volume: 0.018 },
+              { frequency: 659.25, volume: 0.014 }
+            ];
+            choirNotes.forEach((note, index) => {
+              const oscillator = audioContext.createOscillator();
+              const gain = audioContext.createGain();
+              const voiceStart = now + index * 0.045;
+              oscillator.type = "sine";
+              oscillator.frequency.setValueAtTime(note.frequency * 0.92, voiceStart);
+              oscillator.frequency.exponentialRampToValueAtTime(note.frequency, voiceStart + 0.72);
+              gain.gain.setValueAtTime(0.0001, voiceStart);
+              gain.gain.exponentialRampToValueAtTime(note.volume, voiceStart + 0.42);
+              gain.gain.setValueAtTime(note.volume, voiceStart + 0.8);
+              gain.gain.exponentialRampToValueAtTime(0.0001, voiceStart + 3.1);
+              oscillator.connect(gain);
+              gain.connect(audioContext.destination);
+              oscillator.start(voiceStart);
+              oscillator.stop(voiceStart + 3.15);
+            });
+            [
+              { frequency: 1046.5, delay: 0.02, volume: 0.026 },
+              { frequency: 1318.51, delay: 0.48, volume: 0.019 },
+              { frequency: 1567.98, delay: 0.92, volume: 0.014 },
+              { frequency: 2093, delay: 1.42, volume: 0.009 }
+            ].forEach((note) => {
+              const oscillator = audioContext.createOscillator();
+              const gain = audioContext.createGain();
+              const noteStart = now + note.delay;
+              oscillator.type = "sine";
+              oscillator.frequency.setValueAtTime(note.frequency * 1.03, noteStart);
+              oscillator.frequency.exponentialRampToValueAtTime(note.frequency, noteStart + 0.24);
+              gain.gain.setValueAtTime(0.0001, noteStart);
+              gain.gain.exponentialRampToValueAtTime(note.volume, noteStart + 0.018);
+              gain.gain.exponentialRampToValueAtTime(0.0001, noteStart + 2.2);
+              oscillator.connect(gain);
+              gain.connect(audioContext.destination);
+              oscillator.start(noteStart);
+              oscillator.stop(noteStart + 2.25);
+            });
+            return;
+          }
+
           const oscillator = audioContext.createOscillator();
           const gain = audioContext.createGain();
           oscillator.type = "sine";
@@ -846,10 +1089,12 @@
           if (!isPhilosophy) {
             bubbleTimer = window.setTimeout(() => bubble.classList.remove("show"), 1150);
           }
-          penguin.classList.remove("wiggle");
-          void penguin.offsetWidth;
-          penguin.classList.add("wiggle");
-          chirp();
+          if (!emperorActive) {
+            penguin.classList.remove("wiggle");
+            void penguin.offsetWidth;
+            penguin.classList.add("wiggle");
+          }
+          chirp(isPhilosophy);
         }
 
         function updateBubbleOffset() {
@@ -884,7 +1129,7 @@
         }
 
         function showThought() {
-          if (interactionLocked) return;
+          if (interactionLocked || emperorActive) return;
           interactionLocked = true;
           pointerStart = null;
           petButton.disabled = true;
@@ -903,8 +1148,52 @@
           }, 4000);
         }
 
+        function showEmperorThought() {
+          if (!emperorActive) return;
+          scene.classList.add("philosophy-active");
+          const quote = nextQuote();
+          showCry(quote.text, true, quote.speaker);
+          window.clearTimeout(emperorSpeechTimer);
+          emperorSpeechTimer = window.setTimeout(showEmperorThought, 2200);
+        }
+
+        function endEmperorTime() {
+          emperorActive = false;
+          interactionLocked = false;
+          window.clearTimeout(emperorSpeechTimer);
+          window.clearTimeout(emperorCutInTimer);
+          emperorCutIn.classList.remove("show");
+          scene.classList.remove("emperor-active", "philosophy-active");
+          scene.setAttribute("aria-label", "氷の上のペンギン。画面をスワイプしてください");
+          bubble.classList.remove("show", "philosophy-bubble");
+          penguin.classList.remove("philosopher");
+          petButton.disabled = false;
+        }
+
+        function startEmperorTime() {
+          if (emperorUnlocked) return;
+          emperorUnlocked = true;
+          emperorActive = true;
+          interactionLocked = false;
+          pointerStart = null;
+          petButton.disabled = false;
+          window.clearTimeout(philosophyTimer);
+          window.clearTimeout(bubbleTimer);
+          bubble.classList.remove("show");
+          penguin.classList.remove("philosopher");
+          scene.classList.add("emperor-active");
+          scene.setAttribute("aria-label", "エンペラータイム。スワイプで哲学の言葉を切り替えられます");
+          emperorCutIn.classList.add("show");
+          window.clearTimeout(emperorCutInTimer);
+          emperorCutInTimer = window.setTimeout(() => emperorCutIn.classList.remove("show"), 1600);
+          window.clearTimeout(emperorTimer);
+          emperorTimer = window.setTimeout(endEmperorTime, 10000);
+          window.clearTimeout(emperorSpeechTimer);
+          emperorSpeechTimer = window.setTimeout(showEmperorThought, 1450);
+        }
+
         function interact(deltaX) {
-          if (interactionLocked) return;
+          if (interactionLocked && !emperorActive) return;
           swipes += 1;
           countLabel.textContent = String(swipes);
           swipeCount.textContent = String(swipes);
@@ -920,7 +1209,7 @@
           lastInteractionAt = now;
           const points = 10 + (combo - 1) * 2;
           score += points;
-          scoreLabel.textContent = String(score);
+          scoreLabel.textContent = scoreFormatter.format(score);
           scoreFeedback.textContent = combo > 1 ? `+${points} ×${combo}` : `+${points}`;
           scoreFeedback.classList.remove("pop");
           void scoreFeedback.offsetWidth;
@@ -932,13 +1221,22 @@
           }, 2400);
           if (score > settings.bestScore) {
             settings.bestScore = score;
-            bestScoreLabel.textContent = String(score);
+            bestScoreLabel.textContent = scoreFormatter.format(score);
             saveSettings();
           }
 
           flash.classList.remove("show");
           void flash.offsetWidth;
           flash.classList.add("show");
+
+          if (!emperorUnlocked && score >= emperorScoreThreshold) {
+            startEmperorTime();
+            return;
+          }
+          if (emperorActive) {
+            showEmperorThought();
+            return;
+          }
 
           const philosophyAppears = Math.random() * 100 < settings.philosophyChance;
           if (philosophyAppears) {
@@ -949,7 +1247,7 @@
         }
 
         scene.addEventListener("pointerdown", (event) => {
-          if (interactionLocked || event.isPrimary === false || event.button !== 0) return;
+          if ((interactionLocked && !emperorActive) || event.isPrimary === false || event.button !== 0) return;
           if (event.target instanceof Element && event.target.closest("button")) return;
           pointerStart = { x: event.clientX, y: event.clientY };
           scene.setPointerCapture(event.pointerId);
@@ -960,7 +1258,7 @@
           const deltaX = event.clientX - pointerStart.x;
           const deltaY = event.clientY - pointerStart.y;
           pointerStart = null;
-          if (!interactionLocked && Math.hypot(deltaX, deltaY) >= settings.swipeThreshold) interact(deltaX);
+          if ((!interactionLocked || emperorActive) && Math.hypot(deltaX, deltaY) >= settings.swipeThreshold) interact(deltaX);
         });
 
         scene.addEventListener("pointercancel", () => { pointerStart = null; });
@@ -1008,6 +1306,8 @@
         });
         loadSettings();
         applySettings();
+        updateDayScene();
+        window.setInterval(updateDayScene, 1000);
       })();
     </script>
   </body>
