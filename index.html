@@ -26,6 +26,7 @@
       body { min-width: 0; min-height: 100svh; margin: 0; }
       button { color: inherit; font: inherit; }
       button:focus-visible { outline: 3px solid #f3a979; outline-offset: 3px; }
+      button:disabled { cursor: not-allowed; opacity: .5; }
 
       .page {
         display: grid;
@@ -260,15 +261,15 @@
       }
       @keyframes bob {
         0%, 100% { margin-bottom: 0; }
-        50% { margin-bottom: 7px; }
+        50% { margin-bottom: calc(7px * var(--motion-scale, 1)); }
       }
       .penguin svg { width: 100%; height: 100%; overflow: visible; }
       .penguin.wiggle { animation: wiggle 500ms ease-in-out, bob 3.2s ease-in-out infinite 500ms; }
       @keyframes wiggle {
         0%, 100% { rotate: 0deg; }
-        20% { rotate: -9deg; }
-        45% { rotate: 7deg; }
-        70% { rotate: -4deg; }
+        20% { rotate: calc(-9deg * var(--motion-scale, 1)); }
+        45% { rotate: calc(7deg * var(--motion-scale, 1)); }
+        70% { rotate: calc(-4deg * var(--motion-scale, 1)); }
       }
       .penguin.philosopher { bottom: 15%; filter: drop-shadow(0 0 19px rgb(255 238 175 / 91%)); }
       .penguin.philosopher::after {
@@ -285,10 +286,10 @@
       .cry-bubble {
         position: absolute;
         z-index: 4;
-        bottom: 100%;
+        bottom: calc(100% + 8px);
         left: 50%;
         width: max-content;
-        max-width: calc(100vw - 110px);
+        max-width: min(86vw, 340px);
         padding: 10px 18px;
         border: 2px solid #31545a;
         border-radius: 22px 22px 22px 7px;
@@ -298,13 +299,14 @@
         font-weight: 800;
         letter-spacing: .04em;
         box-shadow: 3px 4px 0 rgb(49 84 90 / 14%), 0 8px 24px rgb(46 101 110 / 13%);
-        transform: translateX(calc(-50% + var(--bubble-shift, 0px))) translateY(8px) scale(.9);
+        transform: translateX(calc(-50% + var(--bubble-shift, 0px))) translateY(calc(var(--bubble-offset, -8px) + 8px)) scale(.9);
         opacity: 0;
         transition: opacity 180ms ease, transform 360ms cubic-bezier(.2,.8,.2,1);
         pointer-events: none;
       }
       .cry-bubble::after {
         position: absolute;
+        z-index: -1;
         top: calc(100% - 1px);
         left: calc(50% - 7px + 6px - var(--bubble-shift, 0px));
         width: 14px;
@@ -314,17 +316,72 @@
         filter: drop-shadow(1px 2px 0 #31545a);
         content: "";
       }
-      .cry-bubble.show { transform: translateX(calc(-50% + var(--bubble-shift, 0px))) translateY(0) scale(1); opacity: 1; }
+      .cry-bubble.show { transform: translateX(calc(-50% + var(--bubble-shift, 0px))) translateY(var(--bubble-offset, -8px)) scale(1); opacity: 1; }
       .cry-bubble.philosophy-bubble {
-        bottom: 100%;
         width: min(86vw, 340px);
-        max-width: calc(100vw - 110px);
+        max-width: min(86vw, 340px);
         padding: 10px 15px;
         border-radius: 22px 22px 8px 22px;
         font-size: 14px;
         line-height: 1.55;
         letter-spacing: 0;
         text-align: center;
+      }
+      .quote-speaker {
+        display: block;
+        margin-top: 7px;
+        color: #788b86;
+        font-size: 11px;
+        font-weight: 700;
+        text-align: right;
+      }
+      .quote-speaker[hidden] { display: none; }
+      .philosophy-aura {
+        position: absolute;
+        z-index: 2;
+        inset: 0;
+        overflow: hidden;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .philosophy-aura::before, .philosophy-aura::after {
+        position: absolute;
+        top: 54%;
+        left: 50%;
+        width: min(68vw, 300px);
+        aspect-ratio: 1;
+        border: 1px solid rgb(255 246 196 / 82%);
+        border-radius: 50%;
+        box-shadow: 0 0 34px rgb(255 234 153 / 47%), inset 0 0 25px rgb(255 255 255 / 28%);
+        content: "";
+        transform: translate(-50%, -50%) scale(.25);
+      }
+      .philosophy-aura::after {
+        width: min(94vw, 420px);
+        border-color: rgb(255 255 255 / 50%);
+      }
+      .philosophy-active .philosophy-aura { opacity: 1; }
+      .philosophy-active .philosophy-aura::before { animation: philosophy-ring 2.4s ease-out infinite; }
+      .philosophy-active .philosophy-aura::after { animation: philosophy-ring 3.2s ease-out infinite .35s; }
+      .philosophy-active .aurora { filter: blur(13px) brightness(1.3); }
+      .philosophy-active .penguin { animation: philosopher-float 1.3s ease-in-out infinite alternate; }
+      .philosophy-active .cry-bubble.philosophy-bubble {
+        border-color: #b48b36;
+        box-shadow: 0 0 0 4px rgb(255 244 193 / 36%), 0 0 35px rgb(255 231 151 / 72%), 3px 4px 0 rgb(49 84 90 / 14%);
+        animation: quote-arrive 520ms cubic-bezier(.16, 1.2, .3, 1) both;
+      }
+      @keyframes philosophy-ring {
+        0% { opacity: 0; transform: translate(-50%, -50%) scale(.25); }
+        18% { opacity: .8; }
+        100% { opacity: 0; transform: translate(-50%, -50%) scale(1.25); }
+      }
+      @keyframes philosopher-float {
+        from { translate: 0 0; }
+        to { translate: 0 -8px; }
+      }
+      @keyframes quote-arrive {
+        from { opacity: 0; transform: translateX(calc(-50% + var(--bubble-shift, 0px))) translateY(calc(var(--bubble-offset, -8px) + 20px)) scale(.72) rotate(-2deg); }
+        to { opacity: 1; transform: translateX(calc(-50% + var(--bubble-shift, 0px))) translateY(var(--bubble-offset, -8px)) scale(1) rotate(0); }
       }
       .cry-bubble.philosophy-bubble::after {
         right: auto;
@@ -371,10 +428,21 @@
         gap: 12px;
         padding: 18px 5px 0;
       }
-      .interaction-count { color: var(--muted); font-size: 11px; }
+      .game-stats { display: grid; gap: 4px; color: var(--muted); font-size: 11px; }
       .interaction-count strong { margin-left: 4px; color: var(--deep); font-size: 14px; }
+      .score-line { display: flex; align-items: baseline; gap: 5px; }
+      .score-line > span:first-child { color: #71858d; font-size: 10px; }
+      .score-line strong { color: #a56d17; font-size: 19px; font-variant-numeric: tabular-nums; }
+      .score-line .best-score { margin-left: 3px; color: #889797; font-size: 9px; }
+      .score-feedback { display: inline-block; min-width: 34px; color: #b17820; font-size: 11px; font-weight: 800; }
+      .score-feedback.pop { animation: score-pop 650ms cubic-bezier(.16, 1.3, .3, 1); }
+      @keyframes score-pop {
+        0% { opacity: 0; transform: translateY(7px) scale(.7); }
+        30% { opacity: 1; transform: translateY(-4px) scale(1.15); }
+        100% { opacity: 0; transform: translateY(-16px) scale(1); }
+      }
       .control-buttons { display: flex; gap: 8px; }
-      .sound-button, .pet-button {
+      .sound-button, .pet-button, .settings-button {
         min-height: 42px;
         padding: 0 15px;
         border: 1px solid #c5dada;
@@ -386,8 +454,64 @@
         cursor: pointer;
         transition: transform 140ms ease, background 140ms ease;
       }
-      .sound-button:active, .pet-button:active { transform: scale(.96); }
+      .sound-button, .pet-button, .settings-button { white-space: nowrap; }
+      .sound-button:active, .pet-button:active, .settings-button:active { transform: scale(.96); }
       .pet-button { border-color: #3c7f88; background: #3c7f88; color: white; }
+      .settings-button { padding: 0 11px; font-size: 15px; }
+
+      .settings-dialog {
+        width: min(440px, calc(100vw - 28px));
+        max-height: min(82svh, 720px);
+        padding: 0;
+        overflow: auto;
+        border: 1px solid #c5dada;
+        border-radius: 22px;
+        background: #f9fcf8;
+        color: var(--ink);
+        box-shadow: 0 24px 80px rgb(22 57 67 / 28%);
+      }
+      .settings-dialog::backdrop { background: rgb(20 49 58 / 42%); backdrop-filter: blur(4px); }
+      .settings-content { padding: 22px; }
+      .settings-heading { display: flex; justify-content: space-between; align-items: start; gap: 16px; }
+      .settings-heading h2 { margin: 0; color: var(--deep); font-size: 20px; }
+      .settings-heading p { margin: 6px 0 18px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+      .settings-close {
+        flex: 0 0 auto;
+        width: 36px;
+        height: 36px;
+        border: 1px solid #c5dada;
+        border-radius: 50%;
+        background: white;
+        cursor: pointer;
+      }
+      .setting { display: grid; gap: 7px; margin: 16px 0; }
+      .setting-label { display: flex; justify-content: space-between; gap: 12px; font-size: 12px; font-weight: 700; }
+      .setting-label output { color: #367781; font-variant-numeric: tabular-nums; }
+      .setting input { width: 100%; accent-color: #3c7f88; }
+      .settings-footnote { margin: 14px 0; color: #71858d; font-size: 10px; line-height: 1.6; }
+      .settings-status { min-height: 18px; margin: 8px 0; color: #a34a34; font-size: 11px; }
+      .settings-actions { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+      .test-philosophy-button {
+        min-height: 40px;
+        padding: 0 14px;
+        border: 0;
+        border-radius: 22px;
+        background: #3c7f88;
+        color: white;
+        font-size: 11px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .reset-settings-button {
+        min-height: 40px;
+        padding: 0 10px;
+        border: 1px solid #c5dada;
+        border-radius: 22px;
+        background: white;
+        color: #597079;
+        font-size: 10px;
+        cursor: pointer;
+      }
 
       .aside { align-self: center; justify-self: end; max-width: 255px; padding-top: 30px; }
       .aside-mark { color: #8db4ae; font-size: 27px; }
@@ -414,10 +538,18 @@
         }
         .scene-top { top: 62px; right: 18px; left: 18px; }
         .penguin { bottom: 22%; width: 152px; height: 195px; }
-        .cry-bubble { bottom: 53%; font-size: 18px; }
+        .cry-bubble { font-size: 18px; }
         .game-controls { padding: 13px 3px 0; }
         .interaction-count { font-size: 10px; }
-        .sound-button, .pet-button { min-height: 40px; padding: 0 12px; font-size: 10px; }
+        .sound-button, .pet-button, .settings-button { min-height: 40px; padding: 0 10px; font-size: 10px; }
+        .settings-button { padding: 0 9px; font-size: 14px; }
+        .cry-bubble, .cry-bubble.philosophy-bubble { max-width: min(86vw, calc(100vw - 92px)); }
+      }
+      @media (max-width: 340px) {
+        .game-controls { flex-wrap: wrap; }
+        .game-stats { width: 100%; grid-template-columns: 1fr auto; align-items: baseline; }
+        .control-buttons { width: 100%; justify-content: flex-end; gap: 6px; }
+        .sound-button, .pet-button, .settings-button { padding-right: 8px; padding-left: 8px; }
       }
       @media (max-height: 700px) and (max-width: 940px) {
         .scene { height: 520px; min-height: 0; }
@@ -438,7 +570,7 @@
         <div class="eyebrow">A LITTLE MOMENT ON THE ICE</div>
         <h1>氷の上で、<br>ひとやすみ。</h1>
         <p>小さな氷の上で暮らすペンギンを、そっとスワイプしてみてください。いつもはかわいい声で返事をします。</p>
-        <div class="side-note"><span aria-hidden="true">✳</span><span>百回目のなでなでで、ペンギンが哲学をひとこと話します。</span></div>
+        <div class="side-note"><span aria-hidden="true">✳</span><span>気まぐれに哲学を語ることも。ひとすべりごとに、少しずつスコアがたまります。</span></div>
       </section>
 
       <section class="game" aria-label="ペンギンと遊ぶ">
@@ -448,10 +580,11 @@
           <div class="cloud" aria-hidden="true"></div>
           <div class="distant-ice left" aria-hidden="true"></div>
           <div class="distant-ice right" aria-hidden="true"></div>
+          <div class="philosophy-aura" id="philosophy-aura" aria-hidden="true"></div>
 
           <div class="scene-top">
             <div class="weather-pill"><span class="weather-dot"></span>南極の小さな氷</div>
-            <div class="count-pill" aria-label="スワイプ回数"><span aria-hidden="true">❄</span><span id="swipe-count">0</span></div>
+            <div class="count-pill" aria-label="操作回数"><span aria-hidden="true">❄</span><span id="swipe-count">0</span></div>
           </div>
 
           <div class="iceberg" aria-hidden="true"></div>
@@ -477,6 +610,7 @@
             </svg>
             <div class="cry-bubble" id="cry-bubble" role="status" aria-live="polite">
               <span id="cry-text"></span>
+              <span class="quote-speaker" id="quote-speaker" hidden></span>
             </div>
           </div>
 
@@ -484,10 +618,18 @@
         </div>
 
         <div class="game-controls">
-          <div class="interaction-count">なでた回数<strong id="count-label">0</strong></div>
+          <div class="game-stats">
+            <div class="interaction-count">なでた回数<strong id="count-label">0</strong></div>
+            <div class="score-line">
+              <span>スコア</span><strong id="score-label">0</strong>
+              <span class="best-score">最高 <span id="best-score">0</span></span>
+              <span class="score-feedback" id="score-feedback" aria-live="polite"></span>
+            </div>
+          </div>
           <div class="control-buttons">
             <button class="sound-button" id="sound-button" type="button" aria-pressed="false">♪ 音 OFF</button>
             <button class="pet-button" id="pet-button" type="button">なでる</button>
+            <button class="settings-button" id="settings-button" type="button" aria-label="調整設定を開く" title="調整設定">⚙</button>
           </div>
         </div>
 
@@ -497,9 +639,51 @@
         <div class="aside-mark" aria-hidden="true">〰</div>
         <h2>気ままに、ひとすべり。</h2>
         <p>左右でも上下でも、好きな方向へスワイプ。ペンギンはちょっと移動して、ひらがなの声で返事をします。</p>
-        <p class="aside-tip">百回ごとに、いつもと違う話が聞けるかもしれません。急がず、のんびり。</p>
+        <p class="aside-tip">まれに哲学者の言葉が聞けるかも。哲学のあいだは、ゆっくり余韻をお楽しみください。</p>
       </aside>
     </main>
+
+    <dialog class="settings-dialog" id="settings-dialog" aria-labelledby="settings-title">
+      <div class="settings-content">
+        <div class="settings-heading">
+          <div>
+            <h2 id="settings-title">あそびの調整</h2>
+            <p>好みの手触りに調整できます。この端末のブラウザーに保存されます。</p>
+          </div>
+          <button class="settings-close" id="settings-close" type="button" aria-label="設定を閉じる">×</button>
+        </div>
+        <label class="setting" for="philosophy-chance">
+          <span class="setting-label"><span>哲学が出る確率</span><output id="philosophy-chance-output" for="philosophy-chance">1%</output></span>
+          <input id="philosophy-chance" type="range" min="0" max="100" step="1" value="1">
+        </label>
+        <label class="setting" for="motion-scale">
+          <span class="setting-label"><span>ペンギンの動きの大きさ</span><output id="motion-scale-output" for="motion-scale">1.0x</output></span>
+          <input id="motion-scale" type="range" min="0" max="2" step="0.1" value="1">
+        </label>
+        <label class="setting" for="swipe-threshold">
+          <span class="setting-label"><span>スワイプの反応幅</span><output id="swipe-threshold-output" for="swipe-threshold">18 px</output></span>
+          <input id="swipe-threshold" type="range" min="8" max="64" step="1" value="18">
+        </label>
+        <label class="setting" for="swipe-width">
+          <span class="setting-label"><span>ペンギンの移動幅</span><output id="swipe-width-output" for="swipe-width">9%</output></span>
+          <input id="swipe-width" type="range" min="3" max="20" step="1" value="9">
+        </label>
+        <label class="setting" for="bubble-offset">
+          <span class="setting-label"><span>吹き出しの高さ</span><output id="bubble-offset-output" for="bubble-offset">-8 px</output></span>
+          <input id="bubble-offset" type="range" min="-36" max="12" step="2" value="-8">
+        </label>
+        <label class="setting" for="bubble-horizontal-offset">
+          <span class="setting-label"><span>吹き出しの左右位置</span><output id="bubble-horizontal-offset-output" for="bubble-horizontal-offset">0 px</output></span>
+          <input id="bubble-horizontal-offset" type="range" min="-80" max="80" step="2" value="0">
+        </label>
+        <p class="settings-footnote">哲学の演出は約4秒間続き、その間はスワイプとなでる操作が一時停止します。</p>
+        <p class="settings-status" id="settings-status" role="status" aria-live="polite"></p>
+        <div class="settings-actions">
+          <button class="test-philosophy-button" id="test-philosophy" type="button">哲学の演出を試す</button>
+          <button class="reset-settings-button" id="reset-settings" type="button">初期設定に戻す</button>
+        </div>
+      </div>
+    </dialog>
 
     <script>
       (() => {
@@ -507,36 +691,125 @@
         const penguin = document.getElementById("penguin");
         const bubble = document.getElementById("cry-bubble");
         const cryText = document.getElementById("cry-text");
+        const quoteSpeaker = document.getElementById("quote-speaker");
         const countLabel = document.getElementById("count-label");
         const swipeCount = document.getElementById("swipe-count");
         const flash = document.getElementById("swipe-flash");
         const soundButton = document.getElementById("sound-button");
         const petButton = document.getElementById("pet-button");
+        const scoreLabel = document.getElementById("score-label");
+        const bestScoreLabel = document.getElementById("best-score");
+        const scoreFeedback = document.getElementById("score-feedback");
+        const settingsDialog = document.getElementById("settings-dialog");
+        const settingsButton = document.getElementById("settings-button");
+        const settingsStatus = document.getElementById("settings-status");
+        const settingInputs = {
+          philosophyChance: document.getElementById("philosophy-chance"),
+          motionScale: document.getElementById("motion-scale"),
+          swipeThreshold: document.getElementById("swipe-threshold"),
+          swipeWidth: document.getElementById("swipe-width"),
+          bubbleOffset: document.getElementById("bubble-offset"),
+          bubbleHorizontalOffset: document.getElementById("bubble-horizontal-offset")
+        };
+        const settingOutputs = {
+          philosophyChance: document.getElementById("philosophy-chance-output"),
+          motionScale: document.getElementById("motion-scale-output"),
+          swipeThreshold: document.getElementById("swipe-threshold-output"),
+          swipeWidth: document.getElementById("swipe-width-output"),
+          bubbleOffset: document.getElementById("bubble-offset-output"),
+          bubbleHorizontalOffset: document.getElementById("bubble-horizontal-offset-output")
+        };
 
         const cries = ["ぺーん。", "ぺんっ！", "ぺぎゃ。", "ぺるる。", "ぺんぺん。", "ぷぅ。", "ぺぇ。", "きゅう。"];
-        const thoughts = [
-          "考えずに進めば、足跡は増えても行き先は見えない。考えるだけで歩かなければ、景色はひとつも変わらない。",
-          "目に見えるものだけを信じると、心の動きを見失う。心の声だけを信じると、目の前の景色を見落とす。",
-          "自分で選べない波は止められない。でも、どの波に乗るかは選べる。",
-          "答えを急ぐと、問いのなかに隠れていた小さな発見を取りこぼす。",
-          "昨日の自分と比べれば、進んだ歩幅が見える。誰かと比べれば、自分の歩幅を忘れてしまう。",
-          "ひとりで考えると自分の声が聞こえる。誰かと話すと、その声が世界のなかで形を変える。",
-          "知っていることが増えるほど、知らないことの広さにも気づいていく。",
-          "自由に泳ぐとは、どこへでも行くことではない。行き先を自分で選ぶことだ。",
-          "失ったものを数える目は、まだここにあるものを見えにくくする。",
-          "正しさだけでは心に届かない。やさしさだけでは道に迷うこともある。",
-          "静けさは空っぽではない。耳をすませば、波の考えが聞こえてくる。",
-          "遠くを見る目と、足元を見る目。その両方があって、ぼくは迷わず歩ける。"
+        const quotes = [
+          { text: "内容のない思考は空虚であり、概念のない直観は盲目である。", speaker: "イマヌエル・カント" },
+          { text: "我思う、ゆえに我あり。", speaker: "ルネ・デカルト" },
+          { text: "吟味されない生は、生きるに値しない。", speaker: "ソクラテス" },
+          { text: "人間は考える葦である。", speaker: "ブレーズ・パスカル" },
+          { text: "怪物と闘う者は、その過程で自ら怪物とならぬよう気をつけよ。", speaker: "フリードリヒ・ニーチェ" },
+          { text: "すべての人間は、生まれながらに知ることを欲する。", speaker: "アリストテレス" },
+          { text: "人を悩ませるのは物事ではなく、物事についての考え方である。", speaker: "エピクテトス" },
+          { text: "人生の幸福は、思考の質に左右される。", speaker: "マルクス・アウレリウス" }
         ];
 
+        const settingsKey = "penguin-philosophy-settings";
+        const defaultSettings = {
+          philosophyChance: 1,
+          motionScale: 1,
+          swipeThreshold: 18,
+          swipeWidth: 9,
+          bubbleOffset: -8,
+          bubbleHorizontalOffset: 0,
+          bestScore: 0
+        };
+        const settingBounds = {
+          philosophyChance: [0, 100],
+          motionScale: [0, 2],
+          swipeThreshold: [8, 64],
+          swipeWidth: [3, 20],
+          bubbleOffset: [-36, 12],
+          bubbleHorizontalOffset: [-80, 80]
+        };
+        const settings = { ...defaultSettings };
         let swipes = 0;
         let position = 50;
+        let score = 0;
+        let combo = 0;
+        let lastInteractionAt = 0;
         let soundEnabled = false;
-        let thoughtOrder = [];
-        let lastThoughtIndex = -1;
+        let quoteOrder = [];
+        let lastQuoteIndex = -1;
         let bubbleTimer;
+        let philosophyTimer;
+        let comboTimer;
         let audioContext;
         let pointerStart = null;
+        let interactionLocked = false;
+
+        function loadSettings() {
+          try {
+            const saved = localStorage.getItem(settingsKey);
+            if (!saved) return;
+            const parsed = JSON.parse(saved);
+            for (const [key, [min, max]] of Object.entries(settingBounds)) {
+              const value = Number(parsed[key]);
+              if (Number.isFinite(value)) settings[key] = Math.max(min, Math.min(max, value));
+            }
+            const savedBestScore = Number(parsed.bestScore);
+            if (Number.isFinite(savedBestScore) && savedBestScore >= 0) {
+              settings.bestScore = Math.floor(savedBestScore);
+            }
+          } catch (error) {
+            settingsStatus.textContent = "保存済みの設定を読み込めませんでした。既定値で開始します。";
+            console.error("設定の読み込みに失敗しました。", error);
+          }
+        }
+
+        function saveSettings() {
+          try {
+            localStorage.setItem(settingsKey, JSON.stringify(settings));
+            settingsStatus.textContent = "";
+          } catch (error) {
+            settingsStatus.textContent = "このブラウザーでは設定を保存できません。";
+            console.error("設定の保存に失敗しました。", error);
+          }
+        }
+
+        function applySettings() {
+          scene.style.setProperty("--motion-scale", String(settings.motionScale));
+          penguin.style.setProperty("--bubble-offset", `${settings.bubbleOffset}px`);
+          for (const [key, input] of Object.entries(settingInputs)) {
+            input.value = String(settings[key]);
+          }
+          settingOutputs.philosophyChance.value = `${settings.philosophyChance}%`;
+          settingOutputs.motionScale.value = `${settings.motionScale.toFixed(1)}x`;
+          settingOutputs.swipeThreshold.value = `${settings.swipeThreshold} px`;
+          settingOutputs.swipeWidth.value = `${settings.swipeWidth}%`;
+          settingOutputs.bubbleOffset.value = `${settings.bubbleOffset} px`;
+          settingOutputs.bubbleHorizontalOffset.value = `${settings.bubbleHorizontalOffset} px`;
+          bestScoreLabel.textContent = String(settings.bestScore);
+          updateBubbleOffset();
+        }
 
         function chirp() {
           if (!soundEnabled) return;
@@ -561,10 +834,12 @@
           oscillator.stop(now + 0.31);
         }
 
-        function showCry(text, isPhilosophy = false) {
+        function showCry(text, isPhilosophy = false, speaker = "") {
           bubble.classList.toggle("philosophy-bubble", isPhilosophy);
           penguin.classList.toggle("philosopher", isPhilosophy);
           cryText.textContent = text;
+          quoteSpeaker.textContent = speaker ? `— ${speaker}` : "";
+          quoteSpeaker.hidden = !speaker;
           bubble.classList.add("show");
           updateBubbleOffset();
           window.clearTimeout(bubbleTimer);
@@ -579,46 +854,94 @@
 
         function updateBubbleOffset() {
           if (!bubble.classList.contains("show")) return;
+          const maxBubbleWidth = Math.max(120, Math.min(scene.clientWidth - 36, window.innerWidth * 0.86, 340));
+          bubble.style.maxWidth = `${maxBubbleWidth}px`;
           const sceneWidth = scene.clientWidth;
-          const bubbleWidth = bubble.getBoundingClientRect().width;
+          const bubbleWidth = bubble.offsetWidth;
           const penguinCenter = scene.clientLeft + sceneWidth * position / 100;
-          const minCenter = bubbleWidth / 2 + 18;
+          const desiredCenter = penguinCenter + settings.bubbleHorizontalOffset;
+          const minCenter = scene.clientLeft + bubbleWidth / 2 + 18;
           const maxCenter = scene.clientLeft + sceneWidth - bubbleWidth / 2 - 18;
-          const visibleCenter = Math.max(minCenter, Math.min(maxCenter, penguinCenter));
+          const visibleCenter = minCenter <= maxCenter
+            ? Math.max(minCenter, Math.min(maxCenter, desiredCenter))
+            : scene.clientLeft + sceneWidth / 2;
           bubble.style.setProperty("--bubble-shift", `${visibleCenter - penguinCenter}px`);
         }
 
-        function showThought() {
-          if (thoughtOrder.length === 0) {
-            thoughtOrder = thoughts.map((_, index) => index);
-            for (let index = thoughtOrder.length - 1; index > 0; index -= 1) {
+        function nextQuote() {
+          if (quoteOrder.length === 0) {
+            quoteOrder = quotes.map((_, index) => index);
+            for (let index = quoteOrder.length - 1; index > 0; index -= 1) {
               const swapIndex = Math.floor(Math.random() * (index + 1));
-              [thoughtOrder[index], thoughtOrder[swapIndex]] = [thoughtOrder[swapIndex], thoughtOrder[index]];
+              [quoteOrder[index], quoteOrder[swapIndex]] = [quoteOrder[swapIndex], quoteOrder[index]];
             }
-            if (thoughtOrder.length > 1 && thoughtOrder[0] === lastThoughtIndex) {
-              [thoughtOrder[0], thoughtOrder[1]] = [thoughtOrder[1], thoughtOrder[0]];
+            if (quoteOrder.length > 1 && quoteOrder[0] === lastQuoteIndex) {
+              [quoteOrder[0], quoteOrder[1]] = [quoteOrder[1], quoteOrder[0]];
             }
           }
-          lastThoughtIndex = thoughtOrder.shift();
-          penguin.classList.add("philosopher");
-          showCry(thoughts[lastThoughtIndex], true);
+          lastQuoteIndex = quoteOrder.shift();
+          return quotes[lastQuoteIndex];
+        }
+
+        function showThought() {
+          if (interactionLocked) return;
+          interactionLocked = true;
+          pointerStart = null;
+          petButton.disabled = true;
+          scene.setAttribute("aria-label", "哲学の言葉を聞いています。少しお待ちください");
+          scene.classList.add("philosophy-active");
+          const quote = nextQuote();
+          showCry(quote.text, true, quote.speaker);
+          window.clearTimeout(philosophyTimer);
+          philosophyTimer = window.setTimeout(() => {
+            interactionLocked = false;
+            petButton.disabled = false;
+            scene.setAttribute("aria-label", "氷の上のペンギン。画面をスワイプしてください");
+            scene.classList.remove("philosophy-active");
+            bubble.classList.remove("show");
+            penguin.classList.remove("philosopher");
+          }, 4000);
         }
 
         function interact(deltaX) {
+          if (interactionLocked) return;
           swipes += 1;
           countLabel.textContent = String(swipes);
           swipeCount.textContent = String(swipes);
 
-          if (Math.abs(deltaX) > 10) {
-            position = Math.max(28, Math.min(72, position + (deltaX > 0 ? 9 : -9)));
+          if (Math.abs(deltaX) >= settings.swipeThreshold) {
+            position = Math.max(28, Math.min(72, position + (deltaX > 0 ? settings.swipeWidth : -settings.swipeWidth)));
             penguin.style.left = `${position}%`;
+            updateBubbleOffset();
+          }
+
+          const now = performance.now();
+          combo = now - lastInteractionAt <= 2400 ? Math.min(combo + 1, 10) : 1;
+          lastInteractionAt = now;
+          const points = 10 + (combo - 1) * 2;
+          score += points;
+          scoreLabel.textContent = String(score);
+          scoreFeedback.textContent = combo > 1 ? `+${points} ×${combo}` : `+${points}`;
+          scoreFeedback.classList.remove("pop");
+          void scoreFeedback.offsetWidth;
+          scoreFeedback.classList.add("pop");
+          window.clearTimeout(comboTimer);
+          comboTimer = window.setTimeout(() => {
+            combo = 0;
+            scoreFeedback.textContent = "";
+          }, 2400);
+          if (score > settings.bestScore) {
+            settings.bestScore = score;
+            bestScoreLabel.textContent = String(score);
+            saveSettings();
           }
 
           flash.classList.remove("show");
           void flash.offsetWidth;
           flash.classList.add("show");
 
-          if (swipes % 100 === 0) {
+          const philosophyAppears = Math.random() * 100 < settings.philosophyChance;
+          if (philosophyAppears) {
             showThought();
             return;
           }
@@ -626,7 +949,8 @@
         }
 
         scene.addEventListener("pointerdown", (event) => {
-          if (event.target.closest("button")) return;
+          if (interactionLocked || event.isPrimary === false || event.button !== 0) return;
+          if (event.target instanceof Element && event.target.closest("button")) return;
           pointerStart = { x: event.clientX, y: event.clientY };
           scene.setPointerCapture(event.pointerId);
         });
@@ -636,11 +960,38 @@
           const deltaX = event.clientX - pointerStart.x;
           const deltaY = event.clientY - pointerStart.y;
           pointerStart = null;
-          if (Math.hypot(deltaX, deltaY) >= 18) interact(deltaX);
+          if (!interactionLocked && Math.hypot(deltaX, deltaY) >= settings.swipeThreshold) interact(deltaX);
         });
 
         scene.addEventListener("pointercancel", () => { pointerStart = null; });
         petButton.addEventListener("click", () => interact(0));
+        settingsButton.addEventListener("click", () => {
+          settingsDialog.showModal();
+        });
+        document.getElementById("settings-close").addEventListener("click", () => settingsDialog.close());
+        settingsDialog.addEventListener("click", (event) => {
+          if (event.target === settingsDialog) settingsDialog.close();
+        });
+        for (const [key, input] of Object.entries(settingInputs)) {
+          input.addEventListener("input", () => {
+            settings[key] = Number(input.value);
+            applySettings();
+            saveSettings();
+          });
+        }
+        document.getElementById("test-philosophy").addEventListener("click", () => {
+          if (interactionLocked) return;
+          settingsDialog.close();
+          showThought();
+        });
+        document.getElementById("reset-settings").addEventListener("click", () => {
+          for (const key of Object.keys(settingBounds)) {
+            settings[key] = defaultSettings[key];
+          }
+          applySettings();
+          saveSettings();
+          if (!settingsStatus.textContent) settingsStatus.textContent = "調整項目を初期設定に戻しました。";
+        });
         soundButton.addEventListener("click", () => {
           soundEnabled = !soundEnabled;
           soundButton.setAttribute("aria-pressed", String(soundEnabled));
@@ -650,11 +1001,13 @@
         window.addEventListener("resize", updateBubbleOffset);
         document.addEventListener("keydown", (event) => {
           if (event.key === "ArrowLeft" || event.key === "ArrowRight" || event.key === " ") {
-            if (event.target instanceof HTMLButtonElement) return;
+            if (settingsDialog.open || event.target instanceof HTMLButtonElement || event.target instanceof HTMLInputElement) return;
             event.preventDefault();
             interact(event.key === "ArrowLeft" ? -30 : event.key === "ArrowRight" ? 30 : 0);
           }
         });
+        loadSettings();
+        applySettings();
       })();
     </script>
   </body>
