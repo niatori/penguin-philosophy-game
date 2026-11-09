@@ -347,7 +347,7 @@
         position: absolute;
         z-index: -1;
         top: calc(100% - 1px);
-        left: calc(50% - 1px);
+        left: calc(50% - 7px + 6px - var(--bubble-shift, 0px));
         width: 14px;
         height: 78px;
         background: #fffefa;
@@ -424,7 +424,7 @@
       }
       .cry-bubble.philosophy-bubble::after {
         right: auto;
-        left: calc(50% - 2px);
+        left: calc(50% - 8px + 6px - var(--bubble-shift, 0px));
         width: 17px;
         height: 78px;
         clip-path: polygon(0 0, 100% 0, 50% 100%);
@@ -480,7 +480,7 @@
       .emperor-cutin span { font-size: 10px; font-weight: 800; letter-spacing: .3em; }
       .emperor-cutin strong {
         color: #fff9dc;
-        font-size: clamp(30px, 8vw, 48px);
+        font-size: clamp(18px, 6vw, 30px);
         font-weight: 900;
         letter-spacing: .06em;
         white-space: nowrap;
@@ -684,8 +684,8 @@
           <div class="distant-ice right" aria-hidden="true"></div>
           <div class="philosophy-aura" id="philosophy-aura" aria-hidden="true"></div>
           <div class="emperor-cutin" id="emperor-cutin" aria-hidden="true">
-            <span>LIMIT BREAK · 10,000</span>
-            <strong>エンペラータイム</strong>
+            <span id="cutin-score">10,000 POINTS</span>
+            <strong>コペルニクス的ペン回</strong>
             <span>PHILOSOPHY AWAKENED</span>
           </div>
 
@@ -716,8 +716,8 @@
               <path d="M71 106c7 5 15 7 24 6M109 112c7 0 13-2 18-6" fill="none" stroke="#e9e5d7" stroke-width="2" opacity=".75"/>
               <g class="emperor-accessories" aria-hidden="true">
                 <path d="M48 53c7-15 17-22 27-25l-8 22c-7 0-13 1-19 3zM132 50c-5-13-14-20-24-23l7 22c6 0 12 0 17 1z" fill="#f3a83b" stroke="#9e6124" stroke-width="2" stroke-linejoin="round"/>
-                <path d="M57 57h35l-2 12c-1 6-7 8-15 7-7-1-12-5-13-11zM88 59h5M94 57h30l-2 11c-1 6-7 8-14 8-8 0-13-4-14-10z" fill="#14202a" stroke="#101b23" stroke-width="3" stroke-linejoin="round"/>
-                <path d="M64 60h21M101 60h17" stroke="#a9e3ef" stroke-width="2" stroke-linecap="round" opacity=".85"/>
+                <path d="M59 57h30l-2 12c-1 6-6 8-13 8s-12-4-13-10zM89 60c4-3 11-3 15 0M104 57h30l-2 10c-1 6-6 10-13 10s-12-2-13-8z" fill="#14202a" stroke="#101b23" stroke-width="3" stroke-linejoin="round"/>
+                <path d="M65 60h19M110 60h18" stroke="#a9e3ef" stroke-width="2" stroke-linecap="round" opacity=".85"/>
               </g>
             </svg>
             <div class="cry-bubble" id="cry-bubble" role="status" aria-live="polite">
@@ -788,7 +788,7 @@
           <span class="setting-label"><span>吹き出しの左右位置</span><output id="bubble-horizontal-offset-output" for="bubble-horizontal-offset">0 px</output></span>
           <input id="bubble-horizontal-offset" type="range" min="-80" max="80" step="2" value="0">
         </label>
-        <p class="settings-footnote">通常の哲学演出は約4秒間操作が止まります。1万点に達すると10秒間の「エンペラータイム」が始まり、スワイプで次の哲学へ進めます。</p>
+        <p class="settings-footnote">通常の哲学演出は約4秒間操作が止まります。1万点ごとに10秒間の「コペルニクス的ペン回」が始まり、スワイプで次の哲学へ進めます。</p>
         <p class="settings-status" id="settings-status" role="status" aria-live="polite"></p>
         <div class="settings-actions">
           <button class="test-philosophy-button" id="test-philosophy" type="button">哲学の演出を試す</button>
@@ -804,6 +804,7 @@
         const penguin = document.getElementById("penguin");
         const bubble = document.getElementById("cry-bubble");
         const emperorCutIn = document.getElementById("emperor-cutin");
+        const cutInScore = document.getElementById("cutin-score");
         const cryText = document.getElementById("cry-text");
         const quoteSpeaker = document.getElementById("quote-speaker");
         const countLabel = document.getElementById("count-label");
@@ -884,7 +885,7 @@
         };
         const settings = { ...defaultSettings };
         const scoreFormatter = new Intl.NumberFormat("ja-JP");
-        const emperorScoreThreshold = 10000;
+        const emperorScoreInterval = 10000;
         let swipes = 0;
         let position = 50;
         let score = 0;
@@ -903,7 +904,8 @@
         let pointerStart = null;
         let interactionLocked = false;
         let emperorActive = false;
-        let emperorUnlocked = false;
+        let nextEmperorScore = emperorScoreInterval;
+        const pendingEmperorMilestones = [];
 
         function loadSettings() {
           try {
@@ -1164,15 +1166,19 @@
           window.clearTimeout(emperorCutInTimer);
           emperorCutIn.classList.remove("show");
           scene.classList.remove("emperor-active", "philosophy-active");
-          scene.setAttribute("aria-label", "氷の上のペンギン。画面をスワイプしてください");
           bubble.classList.remove("show", "philosophy-bubble");
           penguin.classList.remove("philosopher");
           petButton.disabled = false;
+          if (pendingEmperorMilestones.length > 0) {
+            startEmperorTime();
+            return;
+          }
+          scene.setAttribute("aria-label", "氷の上のペンギン。画面をスワイプしてください");
         }
 
         function startEmperorTime() {
-          if (emperorUnlocked) return;
-          emperorUnlocked = true;
+          const milestone = pendingEmperorMilestones.shift();
+          if (milestone === undefined) return;
           emperorActive = true;
           interactionLocked = false;
           pointerStart = null;
@@ -1182,7 +1188,8 @@
           bubble.classList.remove("show");
           penguin.classList.remove("philosopher");
           scene.classList.add("emperor-active");
-          scene.setAttribute("aria-label", "エンペラータイム。スワイプで哲学の言葉を切り替えられます");
+          scene.setAttribute("aria-label", "コペルニクス的ペン回。スワイプで哲学の言葉を切り替えられます");
+          cutInScore.textContent = `${scoreFormatter.format(milestone)} POINTS`;
           emperorCutIn.classList.add("show");
           window.clearTimeout(emperorCutInTimer);
           emperorCutInTimer = window.setTimeout(() => emperorCutIn.classList.remove("show"), 1600);
@@ -1229,7 +1236,11 @@
           void flash.offsetWidth;
           flash.classList.add("show");
 
-          if (!emperorUnlocked && score >= emperorScoreThreshold) {
+          while (score >= nextEmperorScore) {
+            pendingEmperorMilestones.push(nextEmperorScore);
+            nextEmperorScore += emperorScoreInterval;
+          }
+          if (!emperorActive && pendingEmperorMilestones.length > 0) {
             startEmperorTime();
             return;
           }
