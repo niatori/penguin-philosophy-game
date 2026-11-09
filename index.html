@@ -624,6 +624,7 @@
         .intro, .aside { display: none; }
         .brand { top: 18px; left: 22px; }
         .scene { height: min(690px, 72svh); min-height: 510px; }
+        .scene-top { top: 112px; }
       }
       @media (max-width: 480px) {
         body { background: #e8f1ef; }
@@ -636,7 +637,7 @@
           border-width: 5px;
           border-radius: 170px 170px 24px 24px;
         }
-        .scene-top { top: 62px; right: 18px; left: 18px; }
+        .scene-top { top: 84px; right: 18px; left: 18px; }
         .penguin { bottom: 22%; width: 152px; height: 195px; }
         .cry-bubble { font-size: 18px; }
         .game-controls { padding: 13px 3px 0; }
@@ -1079,6 +1080,51 @@
           oscillator.stop(now + 0.31);
         }
 
+        function playEmperorFanfare() {
+          if (!soundEnabled) return;
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (!AudioContextClass) return;
+          if (!audioContext) audioContext = new AudioContextClass();
+          if (audioContext.state === "suspended") audioContext.resume();
+
+          const now = audioContext.currentTime;
+          const impact = audioContext.createOscillator();
+          const impactGain = audioContext.createGain();
+          impact.type = "sine";
+          impact.frequency.setValueAtTime(92, now);
+          impact.frequency.exponentialRampToValueAtTime(46, now + 0.72);
+          impactGain.gain.setValueAtTime(0.0001, now);
+          impactGain.gain.exponentialRampToValueAtTime(0.22, now + 0.025);
+          impactGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.15);
+          impact.connect(impactGain);
+          impactGain.connect(audioContext.destination);
+          impact.start(now);
+          impact.stop(now + 1.2);
+
+          [
+            { frequency: 392, delay: 0.08, volume: 0.038 },
+            { frequency: 493.88, delay: 0.2, volume: 0.034 },
+            { frequency: 587.33, delay: 0.32, volume: 0.032 },
+            { frequency: 783.99, delay: 0.46, volume: 0.04 },
+            { frequency: 1567.98, delay: 0.58, volume: 0.018 }
+          ].forEach((note) => {
+            const oscillator = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            const noteStart = now + note.delay;
+            oscillator.type = note.frequency > 1000 ? "sine" : "triangle";
+            oscillator.frequency.setValueAtTime(note.frequency * 0.94, noteStart);
+            oscillator.frequency.exponentialRampToValueAtTime(note.frequency, noteStart + 0.2);
+            gain.gain.setValueAtTime(0.0001, noteStart);
+            gain.gain.exponentialRampToValueAtTime(note.volume, noteStart + 0.035);
+            gain.gain.setValueAtTime(note.volume, noteStart + 0.42);
+            gain.gain.exponentialRampToValueAtTime(0.0001, noteStart + 1.55);
+            oscillator.connect(gain);
+            gain.connect(audioContext.destination);
+            oscillator.start(noteStart);
+            oscillator.stop(noteStart + 1.6);
+          });
+        }
+
         function showCry(text, isPhilosophy = false, speaker = "") {
           bubble.classList.toggle("philosophy-bubble", isPhilosophy);
           penguin.classList.toggle("philosopher", isPhilosophy);
@@ -1191,6 +1237,7 @@
           scene.setAttribute("aria-label", "コペルニクス的ペン回。スワイプで哲学の言葉を切り替えられます");
           cutInScore.textContent = `${scoreFormatter.format(milestone)} POINTS`;
           emperorCutIn.classList.add("show");
+          playEmperorFanfare();
           window.clearTimeout(emperorCutInTimer);
           emperorCutInTimer = window.setTimeout(() => emperorCutIn.classList.remove("show"), 1600);
           window.clearTimeout(emperorTimer);
